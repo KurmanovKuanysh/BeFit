@@ -4,6 +4,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 from app.models.user import User
+from app.models.weight_log import WeightLog
 from app.schemas.user import UserResponse
 
 
@@ -25,3 +26,9 @@ class WeightResponse(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class WeightGraphResponse(BaseModel):
+    items: list[WeightLog]
+    total_points: int
+    start_date: datetime
+    end_date: datetime
