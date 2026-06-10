@@ -42,10 +42,7 @@ class User(UUIDPrimaryKeyMixin, TimeStampMixin, Document):
         Field(min_length=1, max_length=255),
     ]
 
-    hashed_password: Annotated[
-        str,
-        Field(min_length=8),
-    ]
+    hashed_password: str
 
     role: UserRole = UserRole.USER
 
@@ -70,8 +67,3 @@ class User(UUIDPrimaryKeyMixin, TimeStampMixin, Document):
 
     class Settings:
         name = "users"
-
-        indexes = [
-            "username",
-            "email",
-        ]
