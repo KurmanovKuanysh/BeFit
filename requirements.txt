@@ -3,7 +3,7 @@ uvicorn
 
 beanie
 motor
-pymongo
+pymongo>=4.9,<5
 
 pydantic
 pydantic-settings
