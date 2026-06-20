@@ -1,11 +1,12 @@
 import uuid
 from datetime import datetime, timezone, timedelta
 
-from app.core.exceptions import WeightLogNotFoundError, NotAllowedError
-from app.models.user import User, UserRole
+from app.core.exceptions import WeightLogNotFoundError
+from app.models.user import User
 from app.models.weight_log import WeightLog
 from app.schemas.weight import WeightCreate, WeightGraphResponse, WeightUpdate
 from app.services.exercise import apply_updates
+from app.services.permissions import ensure_owner_or_admin
 
 
 async def create_weight_log(
@@ -82,13 +83,3 @@ async def delete_weight_log(
 ) -> None:
     log = await get_user_weight_log_by_id(log_id, user)
     await log.delete()
-
-#======== Helper===========
-def ensure_owner_or_admin(
-        data_user_id: uuid.UUID,
-        current_user: User
-) -> None:
-    if current_user.role in (UserRole.ADMIN, UserRole.SUPER_ADMIN):
-        return
-    if data_user_id != current_user.id:
-        raise NotAllowedError()

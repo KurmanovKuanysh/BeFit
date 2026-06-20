@@ -1,11 +1,12 @@
 import uuid
 
-from app.core.exceptions import NotAllowedError, WorkoutPlanNotFoundError, \
+from app.core.exceptions import WorkoutPlanNotFoundError, \
     WorkoutPlanItemNotFoundError, WorkoutPlanItemAlreadyExistsError, ExerciseNotFoundError
-from app.models.user import UserRole, User
+from app.models.user import User
 from app.models.workout import WorkoutPlan, WorkoutPlanItem, Exercise
 from app.schemas.workout_plan import WorkoutPlanItemCreate, WorkoutPlanItemUpdate, WorkoutPlanCreate, WorkoutPlanUpdate
 from app.services.exercise import apply_updates
+from app.services.permissions import ensure_owner_or_admin
 
 
 #==========  WORKOUT PLAN ITEM CRUD =================================================================================
@@ -155,12 +156,3 @@ async def delete_workout_plan(
 
     await plan.delete()
 
-#======== Helper===========
-def ensure_owner_or_admin(
-        data_user_id: uuid.UUID,
-        current_user: User
-) -> None:
-    if current_user.role in (UserRole.ADMIN, UserRole.SUPER_ADMIN):
-        return
-    if data_user_id != current_user.id:
-        raise NotAllowedError()

@@ -1,10 +1,11 @@
 import uuid
 from datetime import datetime
 
-from app.core.exceptions import UserNotFoundError, WaterLogNotFoundError, NotAllowedError
-from app.models.user import User, UserRole
+from app.core.exceptions import  WaterLogNotFoundError
+from app.models.user import User
 from app.models.water import Water
 from app.schemas.water import WaterCreate, WaterUpdate
+from app.services.permissions import ensure_owner_or_admin
 
 
 async def create_water_log(
@@ -21,7 +22,7 @@ async def create_water_log(
 
 async def get_user_water_logs(user_id: uuid.UUID) -> list[Water]:
     return await Water.find(
-        Water.user.id == user_id,
+        Water.user.id == user_id, # type: ignore[attr-defined]
         fetch_links=True# type: ignore[attr-defined]
     ).to_list()
 
@@ -72,12 +73,3 @@ async def delete_water_log(
     log = await get_water_log_by_id(log_id, user)
     await log.delete()
 
-#======== Helper===========
-def ensure_owner_or_admin(
-        data_user_id: uuid.UUID,
-        current_user: User
-) -> None:
-    if current_user.role in (UserRole.ADMIN, UserRole.SUPER_ADMIN):
-        return
-    if data_user_id != current_user.id:
-        raise NotAllowedError()

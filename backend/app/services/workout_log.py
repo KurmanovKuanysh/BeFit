@@ -1,11 +1,12 @@
 import uuid
 
-from app.core.exceptions import UserNotFoundError, WorkoutDataEmptyError, WorkoutPlanNotFoundError, \
-    WorkoutLogNotFoundError, ExerciseNotFoundError, WorkoutLogItemNotFoundError, NotAllowedError
-from app.models.user import User, UserRole
+from app.core.exceptions import WorkoutDataEmptyError, WorkoutPlanNotFoundError, \
+    WorkoutLogNotFoundError, ExerciseNotFoundError, WorkoutLogItemNotFoundError
+from app.models.user import User
 from app.models.workout import WorkoutLog, WorkoutPlan, WorkoutLogItem, Exercise
 from app.schemas.workout_log import WorkoutLogCreate, WorkoutLogUpdate, WorkoutLogItemCreate, WorkoutLogItemUpdate
 from app.services.exercise import apply_updates
+from app.services.permissions import ensure_owner_or_admin
 
 
 # ==========  WORKOUT LOG CRUD =============================================================================================
@@ -160,13 +161,3 @@ async def delete_workout_log_item(
 ) -> None:
     item = await get_workout_log_item_by_id(w_log_id, w_log_item_id, user)
     await item.delete()
-
-#======== Helper===========
-def ensure_owner_or_admin(
-        data_user_id: uuid.UUID,
-        current_user: User
-) -> None:
-    if current_user.role in (UserRole.ADMIN, UserRole.SUPER_ADMIN):
-        return
-    if data_user_id != current_user.id:
-        raise NotAllowedError()
