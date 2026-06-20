@@ -14,7 +14,7 @@ from app.services import user as user_service
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=TokenResponse)
 async def register(
         data: RegisterRequest
 ):
