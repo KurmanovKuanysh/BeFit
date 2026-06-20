@@ -1,0 +1,36 @@
+services:
+  db:
+    image: mongo:7
+    container_name: befit_db
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: befit_backend
+    restart: unless-stopped
+    environment:
+      MONGODB_URL: mongodb+srv://gamedagger6_db_user1:kukatop01@befit.ookxjya.mongodb.net/befit?retryWrites=true&w=majority
+      MONGODB_DB_NAME: befit
+      SECRET_KEY: 6wqp460a1S-wCv4qKu8wgggz_REWwQ6UpyLJ4HBszqc
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      REFRESH_TOKEN_EXPIRE_MINUTES: 60
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  mongo_data:
