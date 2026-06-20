@@ -47,8 +47,8 @@ class Exercise(UUIDPrimaryKeyMixin, TimeStampMixin,Document):
 
     @before_event(Delete)
     async def cascade_delete(self):
-       await WorkoutPlanItem.find({"exercise.$id": self.id}).delete()
-       await WorkoutLogItem.find({"exercise.$id": self.id}).delete()
+       await WorkoutPlanItem.find(WorkoutPlanItem.exercise.id == self.id).delete()  # type: ignore[attr-defined]
+       await WorkoutLogItem.find(WorkoutLogItem.exercise.id == self.id).delete()  # type: ignore[attr-defined]
 
     class Settings:
         name = "exercises"
@@ -62,15 +62,17 @@ class WorkoutPlan(UUIDPrimaryKeyMixin, TimeStampMixin,Document):
     title: str
     level: Level
     created_by: Link[User] | None = None
+    private: bool = False
 
     @before_event(Delete)
     async def cascade_delete(self):
-        await WorkoutPlanItem.find({"workout_plan.$id": self.id}).delete()
+        await WorkoutPlanItem.find(WorkoutPlanItem.workout_plan.id == self.id).delete()  # type: ignore[attr-defined]
 
     class Settings:
         name = "workout_plans"
         indexes = [
-            "created_by"
+            "created_by",
+            "private",
         ]
 
 class WorkoutPlanItem(UUIDPrimaryKeyMixin, TimeStampMixin,Document):
@@ -100,7 +102,7 @@ class WorkoutLog(UUIDPrimaryKeyMixin, TimeStampMixin,Document):
 
     @before_event(Delete)
     async def cascade_delete(self):
-        await WorkoutLogItem.find({"workout_log.$id": self.id}).delete()
+        await WorkoutLogItem.find(WorkoutLogItem.workout_log.id == self.id).delete()  # type: ignore[attr-defined]
 
     class Settings:
         name = "workout_logs"
@@ -125,5 +127,4 @@ class WorkoutLogItem(UUIDPrimaryKeyMixin, TimeStampMixin,Document):
             "workout_log",
             "exercise"
         ]
-
 
