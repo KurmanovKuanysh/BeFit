@@ -1,25 +1,21 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.user import User
 from app.models.weight_log import WeightLog
-from app.schemas.user import UserResponse
 
 
 class WeightCreate(BaseModel):
-    user_id: uuid.UUID
-    weight: float
-    notes: str | None = None
+    weight: float = Field(ge=1, le=1000)
+    notes: str | None = Field(None, min_length=0, max_length=255)
 
 class WeightUpdate(WeightCreate):
-    weight: float | None = None
-    notes: str | None = None
+    weight: float | None = Field(None, ge=1, le=1000)
+    notes: str | None = Field(None, min_length=0, max_length=255)
 
 class WeightResponse(BaseModel):
     id: uuid.UUID
-    user: UserResponse
     weight: float
     notes: str | None = None
     created_at: datetime

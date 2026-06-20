@@ -38,17 +38,21 @@ class WorkoutPlanItemResponse(BaseModel):
 class WorkoutPlanCreate(BaseModel):
     title: str
     level: Level
-    created_by: uuid.UUID | None = None
+    private: bool = False
+
+
 
 class WorkoutPlanUpdate(BaseModel):
     title: str | None = None
     level: Level | None = None
+    private: bool | None = None
 
 class WorkoutPlanResponse(BaseModel):
     id: uuid.UUID
     title: str
     level: Level
     created_by: UserResponse | None = None
+    private: bool = False
 
     created_at: datetime
     updated_at: datetime

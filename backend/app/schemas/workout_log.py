@@ -10,7 +10,6 @@ from app.schemas.workout_plan import WorkoutPlanResponse
 
 #=======  WORKOUT LOG ITEM  ======================================================
 class WorkoutLogItemCreate(BaseModel):
-    workout_log_id: uuid.UUID
     exercise_id: uuid.UUID
     sets: int = Field(gt=0)
     reps: int = Field(gt=0)
@@ -40,7 +39,6 @@ class WorkoutLogItemResponse(BaseModel):
 
 class WorkoutLogCreate(BaseModel):
     title: str
-    user_id: uuid.UUID
     workout_plan_id: uuid.UUID | None = None
     duration_minutes: int | None = None
     completed: bool = False
