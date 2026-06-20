@@ -1,10 +1,18 @@
+import asyncio
+
 import beanie
 import motor
 from motor.motor_asyncio import AsyncIOMotorClient
 
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from app.core.config import settings
 from app.models.user import User, UserRole
+
+from app.core.security import hash_password
 
 
 async def main() -> None:
@@ -24,15 +32,16 @@ async def main() -> None:
         print(f"User {email} already exists, promoting to S_ADMIN")
         existing.role = UserRole.SUPER_ADMIN
         existing.is_active = True
+        await existing.save()
     else:
         super_admin = User(
             email=email,
             username=name,
             role=UserRole.SUPER_ADMIN,
-            hashed_password=password,
+            hashed_password=hash_password(password),
         )
         await super_admin.insert()
     print("Done")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
