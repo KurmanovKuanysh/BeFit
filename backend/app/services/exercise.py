@@ -39,7 +39,7 @@ async def get_exercises_by_filter(filters: FilterExercise) -> list[Exercise]:
 
 async def create_exercise(data: ExerciseCreate) -> Exercise | None:
     existing = await Exercise.find(
-        {"name": re.compile(f"^{re.escape(data.name)}$", re.IGNORECASE)}
+        {"name": {"$regex": f"^{re.escape(data.name).lower()}", "$options": "i"}}
     ).to_list()
     if existing:
         raise ExerciseAlreadyExistsError()

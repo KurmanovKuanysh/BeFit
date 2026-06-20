@@ -9,14 +9,14 @@ from app.core.security import hash_password
 async def get_by_id(user_id: uuid.UUID) -> User:
     user = await User.get(user_id)
     if not user:
-        raise UserNotFoundError
+        raise UserNotFoundError()
     return user
 
 
 async def get_by_email(email: str) -> User:
     user = await User.find_one(User.email == email)
     if not user:
-        raise UserNotFoundError
+        raise UserNotFoundError()
     return user
 
 async def list_users(
@@ -44,7 +44,7 @@ async def create(data: RegisterRequest) -> User:
     existing = await User.find_one(User.email == data.email)
 
     if existing:
-        raise UserAlreadyExistsError
+        raise UserAlreadyExistsError()
 
     user = User(
         username=data.username,
@@ -69,7 +69,7 @@ async def update(
     if 'email' in changes and changes['email'] != user.email:
         existing = await User.find_one(User.email == changes['email'])
         if existing:
-            raise UserAlreadyExistsError
+            raise UserAlreadyExistsError()
 
     for field, value in changes.items():
         setattr(user, field, value)

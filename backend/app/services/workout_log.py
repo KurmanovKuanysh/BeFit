@@ -1,19 +1,18 @@
 import uuid
 
 from app.core.exceptions import UserNotFoundError, WorkoutDataEmptyError, WorkoutPlanNotFoundError, \
-    WorkoutLogNotFoundError, ExerciseNotFoundError, WorkoutLogItemNotFoundError
-from app.models.user import User
+    WorkoutLogNotFoundError, ExerciseNotFoundError, WorkoutLogItemNotFoundError, NotAllowedError
+from app.models.user import User, UserRole
 from app.models.workout import WorkoutLog, WorkoutPlan, WorkoutLogItem, Exercise
 from app.schemas.workout_log import WorkoutLogCreate, WorkoutLogUpdate, WorkoutLogItemCreate, WorkoutLogItemUpdate
 from app.services.exercise import apply_updates
 
 
 # ==========  WORKOUT LOG CRUD =============================================================================================
-async def create_workout_log(data: WorkoutLogCreate) -> WorkoutLog:
-    user = await User.get(data.user_id)
-    if not user:
-        raise UserNotFoundError
-
+async def create_workout_log(
+        data: WorkoutLogCreate,
+        user: User
+) -> WorkoutLog:
     title = data.title.strip()
     if not title:
         raise WorkoutDataEmptyError("Title cannot be empty")
@@ -32,20 +31,35 @@ async def create_workout_log(data: WorkoutLogCreate) -> WorkoutLog:
     await workout_log.insert()
     return workout_log
 
-async def get_workout_log_by_id(log_id: uuid.UUID) -> WorkoutLog:
+async def get_workout_log_by_id(
+        log_id: uuid.UUID,
+        user: User
+) -> WorkoutLog:
     workout_log = await WorkoutLog.get(log_id, fetch_links=True)
     if workout_log is None:
         raise WorkoutLogNotFoundError()
+    if not isinstance(workout_log.user, User):
+        await workout_log.fetch_link(WorkoutLog.user)
+
+    ensure_owner_or_admin(workout_log.user.id, user)
+
     return workout_log
 
-async def get_workout_logs_by_user_id(user_id: uuid.UUID) -> list[WorkoutLog]:
+async def get_workout_logs_by_user_id(
+        user_id: uuid.UUID
+) -> list[WorkoutLog]:
     logs: list[WorkoutLog] = await WorkoutLog.find(
-        {"user.$id": user_id}, fetch_links=True
+        WorkoutLog.user.id == user_id, # type: ignore[attr-defined]
+        fetch_links=True
     ).to_list()
     return logs
 
-async def update_workout_log(log_id: uuid.UUID, data: WorkoutLogUpdate) -> WorkoutLog:
-    workout_log = await get_workout_log_by_id(log_id)
+async def update_workout_log(
+        log_id: uuid.UUID,
+        data: WorkoutLogUpdate,
+        user: User
+) -> WorkoutLog:
+    workout_log = await get_workout_log_by_id(log_id, user)
 
     changes = data.model_dump(exclude_unset=True)
 
@@ -65,20 +79,25 @@ async def update_workout_log(log_id: uuid.UUID, data: WorkoutLogUpdate) -> Worko
     await workout_log.save()
     return workout_log
 
-async def delete_workout_log(log_id: uuid.UUID) -> None:
-    workout_log = await get_workout_log_by_id(log_id)
+async def delete_workout_log(
+        log_id: uuid.UUID,
+        user: User
+) -> None:
+    workout_log = await get_workout_log_by_id(log_id, user)
     await workout_log.delete()
 
 #==========  WORKOUT LOG ITEM CRUD =============================================================================================
 
-async def create_workout_log_item(data: WorkoutLogItemCreate) -> WorkoutLogItem | None:
-    workout_log = await WorkoutLog.get(data.workout_log_id)
-    if not workout_log:
-        raise WorkoutLogNotFoundError
+async def create_workout_log_item(
+        w_log_id: uuid.UUID,
+        data: WorkoutLogItemCreate,
+        user: User
+) -> WorkoutLogItem | None:
+    workout_log = await get_workout_log_by_id(w_log_id, user)
 
     exercise = await Exercise.get(data.exercise_id)
     if not exercise:
-        raise ExerciseNotFoundError
+        raise ExerciseNotFoundError()
 
     workout_item = WorkoutLogItem(
         workout_log=workout_log,  # type: ignore[arg-type]
@@ -95,27 +114,59 @@ async def create_workout_log_item(data: WorkoutLogItemCreate) -> WorkoutLogItem 
     await workout_item.insert()
     return workout_item
 
-async def get_workout_log_item_by_id(w_id: uuid.UUID) -> WorkoutLogItem:
-    item = await WorkoutLogItem.get(w_id, fetch_links=True)
+async def get_workout_log_item_by_id(
+        w_log_id: uuid.UUID,
+        w_log_item_id: uuid.UUID,
+        user: User
+) -> WorkoutLogItem:
+    await get_workout_log_by_id(w_log_id, user)
+
+    item = await WorkoutLogItem.find_one(
+        WorkoutLogItem.id == w_log_item_id,
+        WorkoutLogItem.workout_log.id == w_log_id,  # type: ignore[attr-defined]
+        fetch_links=True
+    )
     if not item:
-        raise WorkoutLogItemNotFoundError
+        raise WorkoutLogItemNotFoundError()
+
     return item
 
-async def get_workout_log_items(w_id: uuid.UUID) -> list[WorkoutLogItem]:
+async def get_workout_log_items(
+        w_id: uuid.UUID,
+        user: User
+) -> list[WorkoutLogItem]:
+    await get_workout_log_by_id(w_id, user)
+
     items: list[WorkoutLogItem] = await WorkoutLogItem.find(
-        {"workout_log.$id": w_id}, fetch_links=True
+        WorkoutLogItem.workout_log.id == w_id,  # type: ignore[attr-defined]
+        fetch_links=True
     ).to_list()
     return items
 
 async def update_workout_log_item(
-        log_item_id: uuid.UUID,
-        data: WorkoutLogItemUpdate
+        w_log_id: uuid.UUID,
+        w_log_item_id: uuid.UUID,
+        data: WorkoutLogItemUpdate,
+        user: User
 ) -> WorkoutLogItem:
-    item = await get_workout_log_item_by_id(log_item_id)
+    item = await get_workout_log_item_by_id(w_log_id, w_log_item_id, user)
 
     return await apply_updates(item, data)
 
-async def delete_workout_log_item(w_id: uuid.UUID) -> None:
-    item = await get_workout_log_item_by_id(w_id)
+async def delete_workout_log_item(
+        w_log_id: uuid.UUID,
+        w_log_item_id: uuid.UUID,
+        user: User
+) -> None:
+    item = await get_workout_log_item_by_id(w_log_id, w_log_item_id, user)
     await item.delete()
 
+#======== Helper===========
+def ensure_owner_or_admin(
+        data_user_id: uuid.UUID,
+        current_user: User
+) -> None:
+    if current_user.role in (UserRole.ADMIN, UserRole.SUPER_ADMIN):
+        return
+    if data_user_id != current_user.id:
+        raise NotAllowedError()
