@@ -1,6 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 class Settings(BaseSettings):
     MONGODB_URL: str
     MONGODB_DB_NAME: str
@@ -15,9 +14,5 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore"
     )
-
-    class Config:
-        env_file = ".env"
-
 
 settings = Settings()

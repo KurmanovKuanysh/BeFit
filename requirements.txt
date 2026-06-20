@@ -1,7 +1,7 @@
 fastapi
 uvicorn
 
-beanie
+beanie>=1.26,<2
 motor
 pymongo>=4.9,<5
 

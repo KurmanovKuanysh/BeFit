@@ -24,7 +24,6 @@ class NotAllowedError(AppError):
         "You are not allowed to perform this action"
     )
 
-
 # Authentication Errors
 class PasswordVerifyError(AppError):
     status_code = status.HTTP_401_UNAUTHORIZED
@@ -78,3 +77,7 @@ class WorkoutLogNotFoundError(AppError):
 class WaterLogNotFoundError(AppError):
     status_code = status.HTTP_404_NOT_FOUND
     detail = "Water log not found"
+
+class WeightLogNotFoundError(AppError):
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Weight log not found"
