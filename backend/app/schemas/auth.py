@@ -26,3 +26,20 @@ class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+class LogoutRequest(BaseModel):
+    refresh_token: str
+
+class VerifyCode(BaseModel):
+    email: EmailStr
+    code: int = Field(
+        ge=100000,
+        le=999999,
+        description="The verification code sent to the user's email address"
+    )
+
+class ResendCodeRequest(BaseModel):
+    email: EmailStr

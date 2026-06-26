@@ -34,7 +34,6 @@ def future_date(days: int = 7) -> datetime:
 def past_date(days_ago: int = 1) -> datetime:
     return datetime.now(timezone.utc) - timedelta(days=days_ago)
 
-
 # ========== СИДЫ ==========
 
 async def seed_users():

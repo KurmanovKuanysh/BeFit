@@ -81,3 +81,9 @@ class WaterLogNotFoundError(AppError):
 class WeightLogNotFoundError(AppError):
     status_code = status.HTTP_404_NOT_FOUND
     detail = "Weight log not found"
+
+class InvalidVerificationCode(AppError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = (
+        "Invalid verification code"
+    )

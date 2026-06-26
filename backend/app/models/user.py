@@ -64,6 +64,7 @@ class User(UUIDPrimaryKeyMixin, TimeStampMixin, Document):
     targets_auto_calculated: bool = False
 
     is_active: bool = True
+    is_verified: bool = False
 
     class Settings:
         name = "users"

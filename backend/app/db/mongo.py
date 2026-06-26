@@ -9,6 +9,7 @@ from app.models.token import RefreshToken
 from app.models.weight_log import WeightLog
 from app.models.workout import Exercise, WorkoutPlan, WorkoutPlanItem, WorkoutLog, WorkoutLogItem
 from app.models.water import Water
+from app.models.verification_code import VerificationCode
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ async def init_db():
             WorkoutLog,
             WorkoutLogItem,
             Water,
-            WeightLog
+            WeightLog,
+            VerificationCode
         ]
     )

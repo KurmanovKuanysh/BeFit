@@ -43,6 +43,8 @@ class UserResponse(BaseModel):
 
     targets_auto_calculated: bool
 
+    is_verified: bool
+
     model_config = ConfigDict(from_attributes=True)
 
 class UserUpdate(BaseModel):
